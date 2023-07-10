@@ -14,14 +14,16 @@ be read at the RoboRio by way of the CAN bus.  However, CTRE makes other
 compatable accessories for this 10-pin cable so that the signals and be
 broken out for other interfaces. 
 
-As of 2023, the device costs about $40.00.
+As of 2023, an SRX Mag Encoder costs about $40.00.
 
 Around 2018, CTRE and Vex Robots introduced the Falon Motor which has
-a motor control and encoder built in, that is, a Falcon does not need a Talon.
-CTRE also introduced a "CANCoder" with is upgrade to the SRX Mag Encoder.
-The CANCoder has the same features as the SRX Mag Encoder, except that the
-10-pin socket has been replaced by CAN wiring.  As of 2023, the CANCoder
-costs about $80.00.  
+a motor control and encoder built in.  That is, a Falcon does not need a Talon.
+Without Talons, a SRX Mag Encoder does not have a natural interface device.
+To alevate this problem CTRE also introduced a "CANCoder" with is upgrade
+to the SRX Mag Encoder.  The CANCoder has the same features as the SRX Mag
+Encoder, except that the 10-pin socket has been replaced by CAN wiring.  
+
+As of 2023, a fully decked out CANCoder costs about $80.00.  
 
 ## The Problem to be Solved
 
@@ -38,16 +40,16 @@ about twice as much as SRX Encoders.
 
 Our idea is to use the cheaper SRX Encoders and thereby save money and reduce the
 relience on the CAN bus.  Also, we may be able to significately reduce data latency.
-Finally, we may be able to fuse the PWM signal with the Quadrature to produce accurate
-angle measurments that are updated as fast as the quadrature readings.  (Sadly,
-as of this writing, this has not been accomplished with the required robustness for
-compentition.)
+Finally, we may be able to fuse the PWM signal with the Quadrature in the PICO 
+to produce accurate angle measurments that are updated as fast as the quadrature
+readings.  (Sadly, as of this writing, this has not been accomplished with the
+required robustness for compentition.)
 
 ## Introducing the Mag4 Interface Device
 
-We created a device that has four 10-pin sockets to connect to 4 SRX Mag Encoders,
-and also a SPI port to connect to the RoboRio.  The device is powered by 12 volts
-from the robot's Power Distribution. 
+We created a device, picture below, that has four 10-pin sockets to connect to
+4 SRX Mag Encoders, and also a SPI port to connect to the RoboRio.  The device
+is powered by 12 volts from the robot's Power Distribution Panel. 
 
 The heart of the device is a Raspberry PICO board.  Software for the PICO and the
 RoboRio is provided for an end-to-end solution of reading angular data from 4

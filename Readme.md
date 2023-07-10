@@ -19,7 +19,7 @@ As of 2023, an SRX Mag Encoder costs about $40.00.
 Around 2018, CTRE and Vex Robots introduced the Falon Motor which has
 a motor control and encoder built in.  That is, a Falcon does not need a Talon.
 Without Talons, a SRX Mag Encoder does not have a natural interface device.
-To alevate this problem CTRE also introduced a "CANCoder" with is upgrade
+To alevate this problem CTRE also introduced a "CANCoder" which is an upgrade
 to the SRX Mag Encoder.  The CANCoder has the same features as the SRX Mag
 Encoder, except that the 10-pin socket has been replaced by CAN wiring.  
 

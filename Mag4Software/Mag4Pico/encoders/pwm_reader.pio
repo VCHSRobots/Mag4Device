@@ -1,0 +1,91 @@
+; Program to measure waveform...  Works for waveforms
+; that have a maximum frequency of about 100 KHZ, and a
+; minimum pulsewidth of about 0.5 us.   It interrupts once
+; per period, and provides two counts in the fifo: the
+; number of cycles in which the input was low, and the
+; number of cycles in which the input was high.
+
+.program pwm_reader
+
+start:
+    PULL            ; Move FIFO into OSR. Blocking until FIFO has something 
+    MOV X OSR       ; Move OSR into X 
+    MOV Y X         ; Move 
+restart:
+    SET PINS 1
+loop1:
+    JMP X-- loop1    ; Loop here, counting X down until zero
+    MOV X Y         ; Start Over
+    SET PINS 0
+loop2:
+    JMP X-- loop2   ; Loop here, counting X down until zero
+    MOV X Y         ; Start Over
+    IRQ SET 0       ; Assert Interrupt, number 0 
+;    IRQ CLEAR 0    ; Clear Interrupt
+    JMP restart     ; Start over
+
+% c-sdk {
+
+// This PIO program requires an entire PIO block of all 4 state machines at once.
+// For now, to make interrupt handling easier, the PIO block is hardwired as block
+// #1. In the future, we might make that flexable.    
+
+#include <stdio.h>
+#include "pico/stdlib.h"
+#include "pico/types.h"
+#include "hardware/clocks.h"
+#include "hardware/gpio.h"
+#include "hardware/irq.h"
+#include "pwm_reader.pio.h"
+
+PIO pio_b = pio1;  // NOTE: For some reason, pio0/1 cannot be used as a constant!
+volatile uint32_t pio_counts[] = {0, 0, 0, 0};
+uint32_t delays[] = {5000, 10000, 20000, 30000};
+
+// Handler is called when any one of the state machines assert their IRQ.
+void __isr pwm_irq_handler(void) {
+    // if (!pio_interrupt_get(pio_b, pis_interrupt0)) {
+    //     // Not our interrupt that we should be processing.
+    //      return;
+    // }
+    pio_interrupt_clear(pio_b, pis_interrupt0);  // Clear the IRQ flag that caused this interrupt
+    for (int i = 0; i < 4; i++) delays[i]++;
+    //pio_sm_put(pio_b, 0, delays[0]);  // Refresh the desired Count
+}
+
+static inline uint32_t pwm_reader_get_count(uint indx) {
+    return pio_counts[indx];
+}
+
+// Here we set up all four state machines in PIO_1 for reading
+// frequency and duty cycle.
+static inline void pwm_reader_program_init()
+{
+    uint sm = 0;
+    uint pio_prog_addr = pio_add_program(pio_b, &pwm_reader_program);
+	pio_sm_config c = pwm_reader_program_get_default_config(pio_prog_addr);
+    sm_config_set_out_pins(&c, 4, 1);
+    pio_gpio_init(pio_b, 4);
+    pio_sm_set_consecutive_pindirs(pio_b, sm, 4, 1, true);
+	pio_sm_init(pio_b, sm, pio_prog_addr, &c);
+    pio_sm_put(pio_b, sm, delays[0]);  // Initialize the FIFO.
+    pio_set_irq0_source_enabled(pio_b, pis_interrupt0, true);
+    irq_set_exclusive_handler(PIO1_IRQ_0, pwm_irq_handler);
+   //irq_set_enabled(PIO1_IRQ_0, true);
+	pio_sm_set_enabled(pio_b, sm, true);
+
+	// //pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, false);
+	// //gpio_pull_up(pin);
+
+	// //sm_config_set_in_pins(&c, pin); // for WAIT, IN
+	// //sm_config_set_jmp_pin(&c, pin); // for JMP
+	// // shift to left, autopull disabled
+	// //sm_config_set_in_shift(&c, false, false, 32);
+	// // don't join FIFO's
+	// sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_NONE);
+
+	// pio_sm_init(pio, sm, offset, &c);
+	// pio_sm_set_enabled(pio, sm, true);
+}
+
+%}

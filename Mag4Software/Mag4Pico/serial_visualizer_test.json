@@ -1,0 +1,27 @@
+{
+	"t":"Dals First Time",
+	"g":[
+		{
+			"t":"Sensor Quad",
+			"d":[
+				{
+					"t":"Time",
+					"v":"%1",
+					"u":"secs"
+				},
+				{
+					"t":"Wire1",
+					"v":"%2",
+					"u":"Volts"
+				},
+				{
+					"t":"Wire2",
+					"v":"%3",
+					"u":"Volts"
+				}
+				]
+
+		}
+		]
+}
+		

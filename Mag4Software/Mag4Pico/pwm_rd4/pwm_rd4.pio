@@ -1,0 +1,94 @@
+.program Pwm_Rd4
+
+; algorithm:
+
+; loop:
+;    reset y, the 'timer' for the pulsewidth (high period)
+;    reset x, the 'timer' for the low period. (high + low = period)
+;    wait for a 0, then wait for a 1: this is the rising edge
+;    loop: 
+;       decrement y timer
+;       test for falling edge 
+;    y timer value is the pulse width (actually, (0xFFFFFFFF - x)*2/125MHz is the pulse width)
+;    loop:
+;       test for rising edge
+;       decrement x timer
+;    x timer is the low period (actually, (0xFFFFFFFF - x)*2/125MHz is the low period)
+;    push both y and x to the Rx FIFO
+;    notify via relative IRQ
+;
+;  This code is configured to measure a pwm frequency between 200HZ and 1000HZ.  Therefore,
+;  if no transistion is detected in a 5 millisecond window then the code errors out with
+;  a value pair of 0,0 for the pulsewidth and period.  
+;
+;  The pio frequency is assumed to be 125MHz.  Therefore, on one cycle waits, the time of
+;  a tick is 8ns. A wait of 5ms is 625,000 ticks.  In the code below, this is approximated as
+;  19 * 32768 = 19 * (1 << 15) = 622,592.  
+
+.wrap_target
+start:
+    pull block      ; Get timeout parameter and put it in the OSR.
+    ; Now, timeout Parameter is kept in OSR forever, instead of following:
+
+    ;; Build the magic number: 622,592
+    ;; set y, 19           ; Load Y with the value 19
+    ;; mov ISR Y           ; Put 19 into the ISR
+    ;; in NULL 15          ; Shift in 15 zeros into the ISR. Value in ISR now is 622,592
+    ;; mov OSR ISR         ; Save the contents in the OSR
+    ;; mov x OSR           ; Load X with 622,592
+
+; Pin is unknown.  Look for a low level, with timeout
+wait_0_start:
+    mov x OSR             ; Load X with timout parameter
+wait_0:
+    jmp pin wait_0_continue ; If pin is high, stay in this section.
+    jmp wait_1_start      ; Pin is low, we can start.
+wait_0_continue:
+    jmp x-- wait_0        ; Continue waiting if not timed-out.
+    jmp time_out          ; Declare Timeout
+
+; Pin is low.  Look for a high level, with timeout.  
+wait_1_start:
+    mov x OSR             ; Reload X with timeout parameter
+wait_1:
+    jmp pin timer_start1  ; Jump when pin goes high
+    jmp x-- wait_1        ; Continue waiting if not timed-out.
+    jmp time_out          ; Declare Timeout
+
+timer_start1:
+    nop [6]               ; Put in extra wait to match back-to-back measurments
+
+; Pin is high. Loop in this section until the pin is low.
+; While looping, count down, and test for timeout
+timer_start:
+    mov y OSR           ; Load Y with timeout parameter
+timer_hp:
+    jmp y-- test_0      ; Count down
+    jmp time_out        ; Declear Timeout
+test_0:
+    jmp pin timer_hp    ; If pin is still high, continue the count down.
+
+; Pin is Low.  Loop in this section until the pin goes high.
+    mov x OSR   [6]        ; Load X with timeout number -- and wait here to balance loop timming
+timer_lp:
+    jmp pin timer_stop  ; If pin is high, stop the timer
+    jmp x-- timer_lp    ; Count down
+    jmp time_out        ; Declare Timeout
+
+; Pin is High.  Push out results and start again
+timer_stop:
+    mov ISR y           ; move the value y to the ISR
+    push noblock        ; push the ISR into the Rx FIFO
+    mov ISR x           ; move the value x to the ISR
+    push noblock        ; push the ISR into the Rx FIFO
+    irq 0 rel           ; notify the c-program via IRQ
+    jmp timer_start     ; Bypass waiting for the low, start measuring next pulse immediately
+
+; Come here on time-out error.  Indicate time-out condition with 0,0 in FIFO
+time_out:
+    mov ISR NULL        ; move zero into ISR 
+    push noblock        ; push zero into the Rx FIFO
+    push noblock        ; push zero into the Rx FIFO
+    irq 0 rel           ; notify the c-program via IRQ
+    jmp wait_0_start    ; start over with unknown conditions
+ .wrap

@@ -1,0 +1,13 @@
+Partlist exported from C:/Users/dalbr/Documents/EAGLE/projects/Mag4/Mag4_V2.sch at 5/29/2023 4:54 PM
+
+Qty Value                Device               Package             Parts          Description                                     
+2   1uf                  CAP0805              C0805               C1, C2                                                         
+1   330                  R1206(3216METRIC)    R1206               R1             Standard Resistor -- Various Sizes and Wattages 
+1   LED1206              LED1206              LED_1206            LED1           Standard LED                                    
+4   MAG_ENCODER_CON      MAG_ENCODER_CON      PINHDR_SMD_050_5X2  J4, J5, J6, J7                                                 
+1   PINHDR_1X2-JST       PINHDR_1X2-JST       JST-XH_098_VERT_1X2 J1                                                             
+1   PINHDR_1X3-100       PINHDR_1X3-100       PINHDR_TH_100_1X3   J8                                                             
+1   PINHDR_1X3XH-JST     PINHDR_1X3XH-JST     JST-XH_098_VERT_1X3 J2                                                             
+1   PINHDR_1X5-JST       PINHDR_1X5-JST       JST-XH_098_VERT_1X5 J3                                                             
+1   RASPBERRY_PI_PICOSMD RASPBERRY_PI_PICOSMD RASP_PI_PICO_SMD    U1             Raspberry PI PICO Board                         
+1   VREG-3L7805CDT       VREG-3L7805CDT       TO252-3             U2             3 Pin Voltage Regulator                         

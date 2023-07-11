@@ -4,7 +4,7 @@ To test the Mag4 device under conditions it is likely to see on a FRC robot, a
 test board, pictured below was constructed.  
 
 The board features a RoboRio that interfaces with a Mag4 device.  The Mag4
-is connected to 4 SRX Mag Encoders.  There of the encoders are mounted on
+is connected to 4 SRX Mag Encoders.  Three of the encoders are mounted on
 shafts that can be freely rotated by hand. The forth is mounted to a shaft
 that can be precisely positioned by a stepper motor.
 
